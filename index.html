@@ -1,0 +1,2109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Classic Retro Frogger Arcade</title>
+  <meta name="description" content="A complete, self-contained retro arcade game inspired by classic Frogger with authentic 80s arcade visuals, grid-based hopping, road traffic, river log floating, goals, and sound effects.">
+  <meta property="og:title" content="Classic Retro Frogger Arcade">
+  <meta property="og:description" content="A complete, self-contained retro arcade game inspired by classic Frogger with authentic 80s arcade visuals, grid-based hopping, road traffic, river log floating, goals, and sound effects.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <style>
+    /* ==========================================================================
+       RETRO ARCADE FROGGER - EMBEDDED STYLESHEET
+       ========================================================================== */
+    :root {
+      --bg-dark: #07090e;
+      --cabinet-outer: #121824;
+      --cabinet-border: #243048;
+      --arcade-green: #00ff66;
+      --arcade-yellow: #ffe600;
+      --arcade-red: #ff3344;
+      --arcade-blue: #00bfff;
+      --arcade-purple: #c040ff;
+      --arcade-font: 'Courier New', Courier, monospace, system-ui;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #ffffff;
+      font-family: var(--arcade-font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+
+    /* Outer Arcade Cabinet Enclosure */
+    .arcade-cabinet {
+      position: relative;
+      background: linear-gradient(180deg, #1b2434 0%, #0d121c 100%);
+      border: 3px solid var(--cabinet-border);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9),
+                  0 0 25px rgba(0, 255, 102, 0.15),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      width: 100%;
+      max-width: 580px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Top Marquee Header */
+    .arcade-marquee {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #1f2a3e;
+      margin-bottom: 12px;
+    }
+
+    .marquee-title {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: var(--arcade-green);
+      text-shadow: 0 0 8px rgba(0, 255, 102, 0.7);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .marquee-title span {
+      color: var(--arcade-yellow);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .arcade-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .arcade-btn:hover {
+      background: #334155;
+      color: #ffffff;
+      border-color: #475569;
+    }
+
+    .arcade-btn:active {
+      transform: scale(0.96);
+    }
+
+    .arcade-btn.active {
+      background: #0f3e26;
+      border-color: var(--arcade-green);
+      color: var(--arcade-green);
+    }
+
+    /* Retro Top Scoreboard */
+    .scoreboard {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      background: #0a0d14;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .score-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .score-label {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: #94a3b8;
+      font-weight: bold;
+    }
+
+    .score-value {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .score-value.p1 {
+      color: var(--arcade-yellow);
+      text-shadow: 0 0 6px rgba(255, 230, 0, 0.4);
+    }
+
+    .score-value.hi {
+      color: var(--arcade-red);
+      text-shadow: 0 0 6px rgba(255, 51, 68, 0.4);
+    }
+
+    .score-value.lvl {
+      color: var(--arcade-blue);
+      text-shadow: 0 0 6px rgba(0, 191, 255, 0.4);
+    }
+
+    /* Canvas Screen Frame & CRT Bezel */
+    .screen-wrapper {
+      position: relative;
+      width: 100%;
+      background: #000000;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.9),
+                  0 0 10px rgba(0, 0, 0, 0.8);
+      border: 2px solid #1a2333;
+    }
+
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      background-color: #000000;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* CRT Scanline & Phosphor Overlay Effect */
+    .crt-overlay {
+      pointer-events: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.25) 50%
+      ), linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.03),
+        rgba(0, 255, 0, 0.01),
+        rgba(0, 0, 255, 0.03)
+      );
+      background-size: 100% 3px, 6px 100%;
+      opacity: 0.85;
+      transition: opacity 0.2s ease;
+      z-index: 5;
+    }
+
+    .crt-overlay.disabled {
+      opacity: 0;
+    }
+
+    /* Interactive Overlay Dialogs (Start, Pause, Game Over, Win) */
+    .game-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(4, 7, 12, 0.88);
+      backdrop-filter: blur(3px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      z-index: 10;
+      transition: opacity 0.2s ease;
+    }
+
+    .game-overlay.hidden {
+      display: none;
+    }
+
+    .overlay-title {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
+
+    .overlay-title.title-start {
+      color: var(--arcade-green);
+      text-shadow: 0 0 12px rgba(0, 255, 102, 0.8);
+    }
+
+    .overlay-title.title-over {
+      color: var(--arcade-red);
+      text-shadow: 0 0 12px rgba(255, 51, 68, 0.8);
+    }
+
+    .overlay-title.title-win {
+      color: var(--arcade-yellow);
+      text-shadow: 0 0 12px rgba(255, 230, 0, 0.8);
+    }
+
+    .overlay-title.title-pause {
+      color: var(--arcade-blue);
+      text-shadow: 0 0 12px rgba(0, 191, 255, 0.8);
+    }
+
+    .overlay-subtitle {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-bottom: 20px;
+      line-height: 1.5;
+      max-width: 380px;
+    }
+
+    .overlay-stats {
+      background: #0d131f;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 12px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+      max-width: 260px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .stat-row span:last-child {
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .primary-btn {
+      background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      border: 2px solid #34d399;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 12px 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+      transition: all 0.15s ease;
+    }
+
+    .primary-btn:hover {
+      background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+    }
+
+    .primary-btn:active {
+      transform: translateY(1px);
+    }
+
+    .key-hints {
+      margin-top: 14px;
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .key-hints kbd {
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 4px;
+      padding: 2px 6px;
+      color: #e2e8f0;
+      font-size: 10px;
+    }
+
+    /* On-Screen Touch / D-Pad Controls for Mobile or Mouse Users */
+    .arcade-controls {
+      width: 100%;
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 8px;
+    }
+
+    .dpad-container {
+      display: grid;
+      grid-template-columns: repeat(3, 44px);
+      grid-template-rows: repeat(3, 44px);
+      gap: 4px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .dpad-btn {
+      background: #1e293b;
+      border: 2px solid #334155;
+      color: #f1f5f9;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+      transition: all 0.1s ease;
+      box-shadow: 0 3px 0 #0f172a;
+    }
+
+    .dpad-btn:hover {
+      background: #334155;
+    }
+
+    .dpad-btn:active {
+      transform: translateY(3px);
+      box-shadow: none;
+      background: #10b981;
+      border-color: #34d399;
+    }
+
+    .dpad-up { grid-column: 2; grid-row: 1; }
+    .dpad-left { grid-column: 1; grid-row: 2; }
+    .dpad-center { 
+      grid-column: 2; 
+      grid-row: 2; 
+      background: #0f172a; 
+      border-color: #1e293b; 
+      box-shadow: none;
+      cursor: default;
+    }
+    .dpad-right { grid-column: 3; grid-row: 2; }
+    .dpad-down { grid-column: 2; grid-row: 3; }
+
+    .control-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .action-circle-btn {
+      background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%);
+      border: 2px solid #f87171;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      padding: 10px 18px;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #7f1d1d;
+      transition: all 0.1s ease;
+    }
+
+    .action-circle-btn:active {
+      transform: translateY(3px);
+      box-shadow: none;
+    }
+
+    .action-circle-btn.pause-btn {
+      background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+      border-color: #60a5fa;
+      box-shadow: 0 4px 0 #1e3a8a;
+    }
+
+    /* Footer instructions */
+    .arcade-footer {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.4;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 500px) {
+      body {
+        padding: 4px;
+      }
+      .arcade-cabinet {
+        padding: 10px;
+        border-radius: 8px;
+      }
+      .marquee-title {
+        font-size: 16px;
+      }
+      .score-value {
+        font-size: 15px;
+      }
+      .dpad-container {
+        grid-template-columns: repeat(3, 40px);
+        grid-template-rows: repeat(3, 40px);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       ARCADE CABINET CONTAINER
+       ======================================================================== -->
+  <main class="arcade-cabinet" role="region" aria-label="Frogger Arcade Game">
+    
+    <!-- Top Marquee Header -->
+    <header class="arcade-marquee">
+      <div class="marquee-title">
+        FROGGER <span>ARCADE</span>
+      </div>
+      <div class="header-actions">
+        <button id="soundBtn" class="arcade-btn active" title="Toggle Sound (M)">
+          <span id="soundIcon">🔊</span> SOUND
+        </button>
+        <button id="crtBtn" class="arcade-btn active" title="Toggle CRT Filter">
+          CRT FX
+        </button>
+      </div>
+    </header>
+
+    <!-- Retro Scoreboard Header -->
+    <section class="scoreboard" aria-label="Scoreboard">
+      <div class="score-block">
+        <span class="score-label">1-UP</span>
+        <span id="scoreVal" class="score-value p1">00000</span>
+      </div>
+      <div class="score-block">
+        <span class="score-label">HIGH SCORE</span>
+        <span id="highScoreVal" class="score-value hi">10000</span>
+      </div>
+      <div class="score-block">
+        <span class="score-label">LEVEL</span>
+        <span id="levelVal" class="score-value lvl">01</span>
+      </div>
+    </section>
+
+    <!-- Canvas Screen Frame -->
+    <div class="screen-wrapper">
+      <!-- 560 x 620 Logical Native Resolution -->
+      <canvas id="gameCanvas" width="560" height="620" aria-label="Game Action Canvas"></canvas>
+
+      <!-- CRT Overlay Effect Layer -->
+      <div id="crtLayer" class="crt-overlay"></div>
+
+      <!-- Start Screen Overlay -->
+      <div id="startOverlay" class="game-overlay">
+        <h2 class="overlay-title title-start">FROGGER</h2>
+        <p class="overlay-subtitle">
+          Guide the frog across the deadly highway and perilous river into all 5 home bays!
+        </p>
+        <div class="overlay-stats">
+          <div class="stat-row">
+            <span>STARTING LIVES</span>
+            <span>3</span>
+          </div>
+          <div class="stat-row">
+            <span>GOAL BAYS</span>
+            <span>5 BAYS</span>
+          </div>
+          <div class="stat-row">
+            <span>TURN TIME</span>
+            <span>30 SEC</span>
+          </div>
+        </div>
+        <button id="startBtn" class="primary-btn">INSERT COIN / PLAY</button>
+        <div class="key-hints">
+          Use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>Arrows</kbd> to hop &middot; <kbd>P</kbd> to Pause
+        </div>
+      </div>
+
+      <!-- Pause Screen Overlay -->
+      <div id="pauseOverlay" class="game-overlay hidden">
+        <h2 class="overlay-title title-pause">PAUSED</h2>
+        <p class="overlay-subtitle">Game suspended. Take a breather!</p>
+        <button id="resumeBtn" class="primary-btn">RESUME GAME</button>
+        <div class="key-hints">Press <kbd>P</kbd> or <kbd>ESC</kbd> to resume</div>
+      </div>
+
+      <!-- Game Over Screen Overlay -->
+      <div id="gameOverOverlay" class="game-overlay hidden">
+        <h2 class="overlay-title title-over">GAME OVER</h2>
+        <p class="overlay-subtitle">You ran out of lives! Better luck next time.</p>
+        <div class="overlay-stats">
+          <div class="stat-row">
+            <span>FINAL SCORE</span>
+            <span id="finalScoreVal">0</span>
+          </div>
+          <div class="stat-row">
+            <span>HIGH SCORE</span>
+            <span id="finalHighVal">10000</span>
+          </div>
+          <div class="stat-row">
+            <span>HIGHEST LEVEL</span>
+            <span id="finalLevelVal">1</span>
+          </div>
+        </div>
+        <button id="restartBtn" class="primary-btn">PLAY AGAIN</button>
+        <div class="key-hints">Press <kbd>ENTER</kbd> or click to restart</div>
+      </div>
+
+      <!-- Level Clear / Victory Screen Overlay -->
+      <div id="winOverlay" class="game-overlay hidden">
+        <h2 class="overlay-title title-win">LEVEL CLEARED!</h2>
+        <p class="overlay-subtitle">Splendid work! All 5 bays filled. Speed increasing!</p>
+        <div class="overlay-stats">
+          <div class="stat-row">
+            <span>ROUND BONUS</span>
+            <span>+1,000 PTS</span>
+          </div>
+          <div class="stat-row">
+            <span>NEXT LEVEL</span>
+            <span id="nextLevelVal">2</span>
+          </div>
+        </div>
+        <button id="nextLevelBtn" class="primary-btn">NEXT LEVEL</button>
+        <div class="key-hints">Press <kbd>SPACE</kbd> or click to proceed</div>
+      </div>
+    </div>
+
+    <!-- On-Screen D-Pad / Touch Controls -->
+    <nav class="arcade-controls" aria-label="Touch Gamepad Controls">
+      <div class="dpad-container">
+        <button id="btnUp" class="dpad-btn dpad-up" aria-label="Move Up">&uarr;</button>
+        <button id="btnLeft" class="dpad-btn dpad-left" aria-label="Move Left">&larr;</button>
+        <div class="dpad-btn dpad-center" aria-hidden="true">&bull;</div>
+        <button id="btnRight" class="dpad-btn dpad-right" aria-label="Move Right">&rarr;</button>
+        <button id="btnDown" class="dpad-btn dpad-down" aria-label="Move Down">&darr;</button>
+      </div>
+
+      <div class="control-actions">
+        <button id="touchPauseBtn" class="action-circle-btn pause-btn">PAUSE</button>
+        <button id="touchRestartBtn" class="action-circle-btn">RESTART</button>
+      </div>
+    </nav>
+
+    <!-- Footer Description -->
+    <footer class="arcade-footer">
+      Classic 1981 Arcade Mechanics &bull; Real Web Audio FX &bull; 100% Self-Contained
+    </footer>
+  </main>
+
+  <!-- ========================================================================
+       RETRO ARCADE FROGGER - EMBEDDED JAVASCRIPT GAME ENGINE
+       ======================================================================== -->
+  <script>
+    /**
+     * Classic Retro Frogger Game Engine
+     * Completely self-contained vanilla JavaScript with Web Audio API synthesis.
+     */
+    (function () {
+      'use strict';
+
+      // ------------------------------------------------------------------------
+      // CONSTANTS & GRID GEOMETRY
+      // ------------------------------------------------------------------------
+      const CANVAS_WIDTH = 560;
+      const CANVAS_HEIGHT = 620;
+      
+      const TOP_OFFSET = 36;          // Top status margin
+      const ROW_HEIGHT = 40;          // Height per lane (13 rows total)
+      const TOTAL_ROWS = 13;
+      const COL_WIDTH = 40;           // Grid cell width
+      const TOTAL_COLS = 14;
+
+      const TURN_DURATION = 30;       // 30 seconds per turn
+      const MAX_LIVES = 3;
+      const PTS_HOP = 10;             // Forward hop
+      const PTS_GOAL = 50;            // Reaching a bay
+      const PTS_FLY = 200;            // Catching bonus fly
+      const PTS_LEVEL_CLEAR = 1000;   // All 5 bays cleared
+
+      // Row Indices:
+      // Row 0: Goal Zone (Bays and bushes)
+      // Row 1: River 5 (Medium Logs ->)
+      // Row 2: River 4 (Diving Turtles <-)
+      // Row 3: River 3 (Long Logs ->)
+      // Row 4: River 2 (Small Logs ->)
+      // Row 5: River 1 (Swimming Turtles <-)
+      // Row 6: Median Grass Sidewalk (Safe)
+      // Row 7: Road 5 (Fast Race Cars <-)
+      // Row 8: Road 4 (Tractors / Buggies ->)
+      // Row 9: Road 3 (Pink Sedans <-)
+      // Row 10: Road 2 (Yellow Cabs ->)
+      // Row 11: Road 1 (Semi Trucks <-)
+      // Row 12: Starting Grass Sidewalk (Safe)
+      const ROW_START = 12;
+      const ROW_MEDIAN = 6;
+      const ROW_GOAL = 0;
+
+      // 5 Goal Bay X Coordinates (Center positions)
+      const GOAL_BAYS = [
+        { id: 0, x: 52,  width: 44, filled: false, fly: false },
+        { id: 1, x: 168, width: 44, filled: false, fly: false },
+        { id: 2, x: 284, width: 44, filled: false, fly: false },
+        { id: 3, x: 400, width: 44, filled: false, fly: false },
+        { id: 4, x: 516, width: 44, filled: false, fly: false }
+      ];
+
+      // ------------------------------------------------------------------------
+      // RETRO WEB AUDIO API SYNTHESIZER
+      // ------------------------------------------------------------------------
+      class SoundFX {
+        constructor() {
+          this.ctx = null;
+          this.enabled = true;
+        }
+
+        init() {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+              this.ctx = new AudioCtx();
+            }
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+        }
+
+        playTone(freq, type = 'sine', duration = 0.08, rampTo = null) {
+          if (!this.enabled || !this.ctx) return;
+          try {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const now = this.ctx.currentTime;
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, now);
+            if (rampTo !== null) {
+              osc.frequency.exponentialRampToValueAtTime(Math.max(rampTo, 20), now + duration);
+            }
+
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now);
+            osc.stop(now + duration);
+          } catch (e) {
+            // Audio error safeguard
+          }
+        }
+
+        hop() {
+          this.init();
+          this.playTone(320, 'sine', 0.09, 580);
+        }
+
+        squash() {
+          this.init();
+          if (!this.enabled || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            // Low sawtooth crunch
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(140, now);
+            osc.frequency.linearRampToValueAtTime(40, now + 0.25);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.25);
+          } catch (e) {}
+        }
+
+        splash() {
+          this.init();
+          if (!this.enabled || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            // Noise splash simulation
+            const bufferSize = this.ctx.sampleRate * 0.25;
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+              data[i] = Math.random() * 2 - 1;
+            }
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(800, now);
+            filter.frequency.exponentialRampToValueAtTime(120, now + 0.25);
+
+            const gain = this.ctx.createGain();
+            gain.gain.setValueAtTime(0.22, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            noise.start(now);
+          } catch (e) {}
+        }
+
+        goal() {
+          this.init();
+          const notes = [440, 554, 659, 880];
+          notes.forEach((f, i) => {
+            setTimeout(() => {
+              this.playTone(f, 'square', 0.12);
+            }, i * 70);
+          });
+        }
+
+        levelWin() {
+          this.init();
+          const notes = [523, 659, 783, 1046, 783, 1046];
+          notes.forEach((f, i) => {
+            setTimeout(() => {
+              this.playTone(f, 'triangle', 0.16);
+            }, i * 90);
+          });
+        }
+
+        gameOver() {
+          this.init();
+          const notes = [392, 349, 329, 261];
+          notes.forEach((f, i) => {
+            setTimeout(() => {
+              this.playTone(f, 'sawtooth', 0.22);
+            }, i * 140);
+          });
+        }
+
+        timeWarning() {
+          this.init();
+          this.playTone(750, 'sine', 0.05);
+        }
+      }
+
+      const sfx = new SoundFX();
+
+      // ------------------------------------------------------------------------
+      // ENTITY DEFINITIONS: FROG, VEHICLES, LOGS, TURTLES
+      // ------------------------------------------------------------------------
+
+      // Directions: 0 = UP, 1 = RIGHT, 2 = DOWN, 3 = LEFT
+      const DIR = { UP: 0, RIGHT: 1, DOWN: 2, LEFT: 3 };
+
+      class Frog {
+        constructor() {
+          this.reset();
+        }
+
+        reset() {
+          this.gridX = 6;
+          this.gridY = ROW_START;
+          this.prevGridY = ROW_START;
+          this.direction = DIR.UP;
+          this.width = 28;
+          this.height = 28;
+          
+          // Smooth jump visual interpolation
+          this.pixelX = this.getScreenX(this.gridX);
+          this.pixelY = this.getScreenY(this.gridY);
+          this.targetX = this.pixelX;
+          this.targetY = this.pixelY;
+          this.isJumping = false;
+          this.jumpProgress = 1;
+          
+          this.isAlive = true;
+          this.deathType = null; // 'splat' or 'drown'
+          this.deathTimer = 0;
+          this.highestRowThisLife = ROW_START;
+        }
+
+        getScreenX(gx) {
+          return gx * COL_WIDTH + (COL_WIDTH - this.width) / 2;
+        }
+
+        getScreenY(gy) {
+          return TOP_OFFSET + gy * ROW_HEIGHT + (ROW_HEIGHT - this.height) / 2;
+        }
+
+        move(dx, dy, dir) {
+          if (!this.isAlive || this.isJumping) return;
+
+          const newGx = this.gridX + dx;
+          const newGy = this.gridY + dy;
+
+          // Boundary limits: left/right cannot leave; bottom cannot leave
+          if (newGx < 0 || newGx >= TOTAL_COLS) return;
+          if (newGy > ROW_START || newGy < 0) return;
+
+          this.gridX = newGx;
+          this.gridY = newGy;
+          this.direction = dir;
+
+          this.targetX = this.getScreenX(this.gridX);
+          this.targetY = this.getScreenY(this.gridY);
+          this.isJumping = true;
+          this.jumpProgress = 0;
+
+          sfx.hop();
+        }
+
+        update(dt) {
+          // Jump interpolation (120ms hop animation)
+          if (this.isJumping) {
+            this.jumpProgress += dt * 9.0;
+            if (this.jumpProgress >= 1) {
+              this.jumpProgress = 1;
+              this.isJumping = false;
+              this.pixelX = this.targetX;
+              this.pixelY = this.targetY;
+            } else {
+              this.pixelX += (this.targetX - this.pixelX) * 0.45;
+              this.pixelY += (this.targetY - this.pixelY) * 0.45;
+            }
+          } else {
+            this.pixelX = this.targetX;
+            this.pixelY = this.targetY;
+          }
+
+          // Handle death animation countdown
+          if (!this.isAlive) {
+            this.deathTimer -= dt;
+          }
+        }
+
+        draw(ctx) {
+          ctx.save();
+
+          // Jump arc elevation scale
+          let scale = 1.0;
+          if (this.isJumping) {
+            scale = 1.0 + Math.sin(this.jumpProgress * Math.PI) * 0.22;
+          }
+
+          const centerX = this.pixelX + this.width / 2;
+          const centerY = this.pixelY + this.height / 2;
+
+          ctx.translate(centerX, centerY);
+
+          if (!this.isAlive) {
+            // Death Splat or Drown Bubble Animation
+            if (this.deathType === 'splat') {
+              // Road squished frog with skull / stars
+              ctx.fillStyle = '#ff2233';
+              ctx.beginPath();
+              ctx.arc(0, 0, 14, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.fillStyle = '#ffe600';
+              ctx.font = 'bold 12px monospace';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText('X', -4, -3);
+              ctx.fillText('X', 4, -3);
+            } else {
+              // River drowning splash rings
+              ctx.strokeStyle = '#00ffff';
+              ctx.lineWidth = 2.5;
+              const ringRadius = 6 + (1 - Math.max(0, this.deathTimer / 0.8)) * 14;
+              ctx.beginPath();
+              ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
+              ctx.stroke();
+
+              ctx.strokeStyle = '#ffffff';
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.arc(0, 0, ringRadius * 0.5, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+            ctx.restore();
+            return;
+          }
+
+          // Rotate according to direction
+          let angle = 0;
+          if (this.direction === DIR.RIGHT) angle = Math.PI / 2;
+          else if (this.direction === DIR.DOWN) angle = Math.PI;
+          else if (this.direction === DIR.LEFT) angle = -Math.PI / 2;
+
+          ctx.rotate(angle);
+          ctx.scale(scale, scale);
+
+          // Frog Feet / Limbs
+          ctx.fillStyle = '#05b33d';
+          // Back legs
+          ctx.fillRect(-12, 4, 6, 8);
+          ctx.fillRect(6, 4, 6, 8);
+          // Front legs
+          ctx.fillRect(-13, -10, 6, 6);
+          ctx.fillRect(7, -10, 6, 6);
+
+          // Frog Main Body
+          ctx.fillStyle = '#00ff44';
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 9, 11, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Dark spots on back
+          ctx.fillStyle = '#02852d';
+          ctx.beginPath();
+          ctx.arc(-3, 2, 2, 0, Math.PI * 2);
+          ctx.arc(3, 2, 2, 0, Math.PI * 2);
+          ctx.arc(0, 5, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Frog Head & Big Bulging Eyes
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(-6, -8, 3.8, 0, Math.PI * 2);
+          ctx.arc(6, -8, 3.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Black Pupils facing forward
+          ctx.fillStyle = '#000000';
+          ctx.beginPath();
+          ctx.arc(-6, -9, 2, 0, Math.PI * 2);
+          ctx.arc(6, -9, 2, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.restore();
+        }
+      }
+
+      // ------------------------------------------------------------------------
+      // ROAD VEHICLES (CARS, TRUCKS, RACERS)
+      // ------------------------------------------------------------------------
+      class Vehicle {
+        constructor(type, x, row, speed) {
+          this.type = type; // 'truck', 'sedan', 'racecar', 'tractor', 'buggy'
+          this.x = x;
+          this.row = row;
+          this.speed = speed;
+          this.y = TOP_OFFSET + row * ROW_HEIGHT;
+          this.height = 32;
+
+          switch (type) {
+            case 'truck':
+              this.width = 100;
+              this.color = '#e2e8f0';
+              break;
+            case 'racecar':
+              this.width = 46;
+              this.color = '#ef4444';
+              break;
+            case 'sedan':
+              this.width = 52;
+              this.color = '#ec4899';
+              break;
+            case 'tractor':
+              this.width = 58;
+              this.color = '#f97316';
+              break;
+            case 'buggy':
+            default:
+              this.width = 48;
+              this.color = '#eab308';
+              break;
+          }
+        }
+
+        update(dt) {
+          this.x += this.speed * dt * 60;
+          // Wrap around screen
+          if (this.speed > 0 && this.x > CANVAS_WIDTH + 50) {
+            this.x = -this.width - 20;
+          } else if (this.speed < 0 && this.x < -this.width - 50) {
+            this.x = CANVAS_WIDTH + 20;
+          }
+        }
+
+        draw(ctx) {
+          ctx.save();
+          const drawY = this.y + (ROW_HEIGHT - this.height) / 2;
+
+          if (this.type === 'truck') {
+            // Semi-Truck Cab & Trailer
+            const isLeft = this.speed < 0;
+            // Trailer
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillRect(this.x + (isLeft ? 32 : 0), drawY + 2, 64, this.height - 4);
+            // Trailer stripes
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(this.x + (isLeft ? 38 : 6), drawY + 6, 52, 3);
+            ctx.fillRect(this.x + (isLeft ? 38 : 6), drawY + 18, 52, 3);
+
+            // Cab
+            ctx.fillStyle = '#3b82f6';
+            const cabX = isLeft ? this.x : this.x + 66;
+            ctx.fillRect(cabX, drawY + 4, 30, this.height - 8);
+
+            // Windshield
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(cabX + (isLeft ? 4 : 14), drawY + 6, 12, this.height - 12);
+
+            // Headlights & Taillights
+            ctx.fillStyle = '#ffe600';
+            ctx.fillRect(isLeft ? this.x : this.x + this.width - 3, drawY + 6, 3, 4);
+            ctx.fillRect(isLeft ? this.x : this.x + this.width - 3, drawY + 22, 3, 4);
+
+          } else if (this.type === 'racecar') {
+            // Sleek Red Formula Racer
+            const isLeft = this.speed < 0;
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(this.x, drawY + 6, this.width, this.height - 12);
+
+            // Cockpit & Windshield
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(this.x + 14, drawY + 8, 16, this.height - 16);
+
+            // Racing stripe
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(this.x + 4, drawY + 14, this.width - 8, 4);
+
+            // Wheels
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(this.x + 6, drawY + 2, 10, 4);
+            ctx.fillRect(this.x + 6, drawY + this.height - 6, 10, 4);
+            ctx.fillRect(this.x + this.width - 16, drawY + 2, 10, 4);
+            ctx.fillRect(this.x + this.width - 16, drawY + this.height - 6, 10, 4);
+
+          } else if (this.type === 'sedan') {
+            // Retro Pink/Magenta Sedan
+            ctx.fillStyle = '#d946ef';
+            ctx.beginPath();
+            ctx.roundRect(this.x, drawY + 4, this.width, this.height - 8, 4);
+            ctx.fill();
+
+            // Roof & Windows
+            ctx.fillStyle = '#4a044e';
+            ctx.fillRect(this.x + 12, drawY + 7, this.width - 24, this.height - 14);
+
+            // Headlights
+            ctx.fillStyle = '#fef08a';
+            const lightX = this.speed > 0 ? this.x + this.width - 3 : this.x;
+            ctx.fillRect(lightX, drawY + 6, 3, 5);
+            ctx.fillRect(lightX, drawY + 20, 3, 5);
+
+          } else if (this.type === 'tractor') {
+            // Orange Bulldozer / Tractor
+            ctx.fillStyle = '#ea580c';
+            ctx.fillRect(this.x, drawY + 4, this.width, this.height - 8);
+
+            // Heavy Treads
+            ctx.fillStyle = '#1c1917';
+            ctx.fillRect(this.x + 2, drawY + 2, this.width - 4, 4);
+            ctx.fillRect(this.x + 2, drawY + this.height - 6, this.width - 4, 4);
+
+            // Driver cabin
+            ctx.fillStyle = '#fde047';
+            ctx.fillRect(this.x + 14, drawY + 9, 20, this.height - 18);
+
+          } else {
+            // Yellow Taxi
+            ctx.fillStyle = '#eab308';
+            ctx.beginPath();
+            ctx.roundRect(this.x, drawY + 4, this.width, this.height - 8, 4);
+            ctx.fill();
+
+            // Windows
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(this.x + 10, drawY + 8, this.width - 20, this.height - 16);
+
+            // Taxi Roof Sign
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(this.x + this.width / 2 - 5, drawY + 12, 10, 7);
+          }
+
+          ctx.restore();
+        }
+      }
+
+      // ------------------------------------------------------------------------
+      // RIVER HAZARDS (LOGS & TURTLES)
+      // ------------------------------------------------------------------------
+      class Log {
+        constructor(x, row, size, speed) {
+          this.x = x;
+          this.row = row;
+          this.size = size; // 'small', 'medium', 'large'
+          this.speed = speed;
+          this.y = TOP_OFFSET + row * ROW_HEIGHT;
+          this.height = 30;
+
+          if (size === 'small') this.width = 85;
+          else if (size === 'medium') this.width = 135;
+          else this.width = 180;
+        }
+
+        update(dt) {
+          this.x += this.speed * dt * 60;
+          if (this.speed > 0 && this.x > CANVAS_WIDTH + 60) {
+            this.x = -this.width - 40;
+          } else if (this.speed < 0 && this.x < -this.width - 60) {
+            this.x = CANVAS_WIDTH + 40;
+          }
+        }
+
+        draw(ctx) {
+          ctx.save();
+          const drawY = this.y + (ROW_HEIGHT - this.height) / 2;
+
+          // Main log wood body
+          ctx.fillStyle = '#854d0e';
+          ctx.beginPath();
+          ctx.roundRect(this.x, drawY + 2, this.width, this.height - 4, 10);
+          ctx.fill();
+
+          // Dark bark outlines and grain lines
+          ctx.strokeStyle = '#543306';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Wood Rings at ends
+          ctx.fillStyle = '#a16207';
+          ctx.beginPath();
+          ctx.ellipse(this.x + 8, drawY + this.height / 2, 4, 9, 0, 0, Math.PI * 2);
+          ctx.ellipse(this.x + this.width - 8, drawY + this.height / 2, 4, 9, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Moss / Bark Highlights
+          ctx.fillStyle = '#15803d';
+          ctx.fillRect(this.x + 24, drawY + 5, 16, 3);
+          ctx.fillRect(this.x + this.width - 45, drawY + 20, 20, 3);
+
+          ctx.restore();
+        }
+      }
+
+      class TurtleGroup {
+        constructor(x, row, count, speed, canDive = false) {
+          this.x = x;
+          this.row = row;
+          this.count = count; // 2 or 3 turtles
+          this.speed = speed;
+          this.canDive = canDive;
+          this.y = TOP_OFFSET + row * ROW_HEIGHT;
+          this.turtleSize = 30;
+          this.spacing = 36;
+          this.width = (count - 1) * this.spacing + this.turtleSize;
+          this.height = 30;
+
+          // Diving state machine: 0 = Surfaced, 1 = Warning/Rippling, 2 = Submerged
+          this.diveState = 0;
+          this.diveTimer = 0;
+          this.swimAnim = 0;
+        }
+
+        update(dt) {
+          this.x += this.speed * dt * 60;
+          if (this.speed < 0 && this.x < -this.width - 40) {
+            this.x = CANVAS_WIDTH + 40;
+          } else if (this.speed > 0 && this.x > CANVAS_WIDTH + 40) {
+            this.x = -this.width - 40;
+          }
+
+          // Swimming stroke animation
+          this.swimAnim += dt * 6;
+
+          // Diving cycle
+          if (this.canDive) {
+            this.diveTimer += dt;
+            const cycle = this.diveTimer % 6.0;
+            if (cycle < 3.2) {
+              this.diveState = 0; // Surfaced (safe)
+            } else if (cycle < 4.2) {
+              this.diveState = 1; // Warning splash (about to dive)
+            } else {
+              this.diveState = 2; // Submerged (DEADLY!)
+            }
+          }
+        }
+
+        draw(ctx) {
+          ctx.save();
+          const drawY = this.y + (ROW_HEIGHT - this.height) / 2;
+          const flipperOffset = Math.sin(this.swimAnim) * 3;
+
+          for (let i = 0; i < this.count; i++) {
+            const tx = this.x + i * this.spacing;
+
+            if (this.diveState === 2) {
+              // Underwater bubbles / ripple
+              ctx.strokeStyle = '#0284c7';
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.arc(tx + 15, drawY + 15, 12, 0, Math.PI * 2);
+              ctx.stroke();
+              continue;
+            }
+
+            // Warning underwater tint
+            const isWarning = (this.diveState === 1);
+
+            // Flippers
+            ctx.fillStyle = isWarning ? '#0369a1' : '#047857';
+            ctx.beginPath();
+            // Front flippers
+            ctx.ellipse(tx + 6, drawY + 5 - flipperOffset, 5, 3, -0.4, 0, Math.PI * 2);
+            ctx.ellipse(tx + 6, drawY + 25 + flipperOffset, 5, 3, 0.4, 0, Math.PI * 2);
+            // Rear flippers
+            ctx.ellipse(tx + 24, drawY + 5 + flipperOffset, 4, 3, 0.4, 0, Math.PI * 2);
+            ctx.ellipse(tx + 24, drawY + 25 - flipperOffset, 4, 3, -0.4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Turtle Shell
+            ctx.fillStyle = isWarning ? '#0284c7' : '#059669';
+            ctx.beginPath();
+            ctx.ellipse(tx + 15, drawY + 15, 12, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#065f46';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Shell Pattern / Rings
+            ctx.fillStyle = isWarning ? '#38bdf8' : '#34d399';
+            ctx.beginPath();
+            ctx.ellipse(tx + 15, drawY + 15, 6, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Head (facing left because speed is negative)
+            ctx.fillStyle = isWarning ? '#0369a1' : '#10b981';
+            ctx.beginPath();
+            ctx.arc(tx + 2, drawY + 15, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(tx + 1, drawY + 13, 2, 2);
+            ctx.fillRect(tx + 1, drawY + 16, 2, 2);
+          }
+
+          ctx.restore();
+        }
+
+        isSafe() {
+          return this.diveState !== 2;
+        }
+      }
+
+      // ------------------------------------------------------------------------
+      // MAIN GAME ENGINE & STATE MANAGEMENT
+      // ------------------------------------------------------------------------
+      class FroggerGame {
+        constructor() {
+          this.canvas = document.getElementById('gameCanvas');
+          this.ctx = this.canvas.getContext('2d');
+
+          // DOM elements
+          this.scoreEl = document.getElementById('scoreVal');
+          this.highScoreEl = document.getElementById('highScoreVal');
+          this.levelEl = document.getElementById('levelVal');
+
+          // Overlays
+          this.startOverlay = document.getElementById('startOverlay');
+          this.pauseOverlay = document.getElementById('pauseOverlay');
+          this.gameOverOverlay = document.getElementById('gameOverOverlay');
+          this.winOverlay = document.getElementById('winOverlay');
+
+          // Buttons
+          this.startBtn = document.getElementById('startBtn');
+          this.resumeBtn = document.getElementById('resumeBtn');
+          this.restartBtn = document.getElementById('restartBtn');
+          this.nextLevelBtn = document.getElementById('nextLevelBtn');
+          this.soundBtn = document.getElementById('soundBtn');
+          this.crtBtn = document.getElementById('crtBtn');
+          this.crtLayer = document.getElementById('crtLayer');
+
+          // Touch buttons
+          this.btnUp = document.getElementById('btnUp');
+          this.btnDown = document.getElementById('btnDown');
+          this.btnLeft = document.getElementById('btnLeft');
+          this.btnRight = document.getElementById('btnRight');
+          this.touchPauseBtn = document.getElementById('touchPauseBtn');
+          this.touchRestartBtn = document.getElementById('touchRestartBtn');
+
+          // State
+          this.state = 'START'; // 'START', 'PLAYING', 'PAUSED', 'GAMEOVER', 'LEVELWIN'
+          this.score = 0;
+          this.highScore = parseInt(localStorage.getItem('classic_frogger_highscore') || '10000', 10);
+          this.lives = MAX_LIVES;
+          this.level = 1;
+          this.timer = TURN_DURATION;
+          this.lastTime = 0;
+
+          // Entities
+          this.frog = new Frog();
+          this.vehicles = [];
+          this.riverEntities = []; // logs and turtle groups
+          this.goalBays = JSON.parse(JSON.stringify(GOAL_BAYS));
+          
+          // Bonus fly manager
+          this.flyTimer = 0;
+          this.activeFlyBay = -1;
+
+          // High score UI display
+          this.updateScoreUI();
+
+          // Bind event listeners
+          this.initInput();
+          this.initLevelEntities();
+
+          // Start loop
+          requestAnimationFrame(this.gameLoop.bind(this));
+        }
+
+        updateScoreUI() {
+          this.scoreEl.textContent = String(this.score).padStart(5, '0');
+          this.highScoreEl.textContent = String(this.highScore).padStart(5, '0');
+          this.levelEl.textContent = String(this.level).padStart(2, '0');
+        }
+
+        initLevelEntities() {
+          this.vehicles = [];
+          this.riverEntities = [];
+
+          // Speed multiplier increases per level (capped at 2.4x)
+          const speedMultiplier = 1.0 + (this.level - 1) * 0.18;
+
+          // ---------------- ROAD LANES (Rows 7 to 11) ----------------
+          // Row 11: Semi-Trucks (slow, moving left)
+          this.vehicles.push(new Vehicle('truck', 100, 11, -1.2 * speedMultiplier));
+          this.vehicles.push(new Vehicle('truck', 380, 11, -1.2 * speedMultiplier));
+
+          // Row 10: Yellow Cabs (fast, moving right)
+          this.vehicles.push(new Vehicle('buggy', 40,  10, 2.4 * speedMultiplier));
+          this.vehicles.push(new Vehicle('buggy', 240, 10, 2.4 * speedMultiplier));
+          this.vehicles.push(new Vehicle('buggy', 440, 10, 2.4 * speedMultiplier));
+
+          // Row 9: Pink Sedans (medium, moving left)
+          this.vehicles.push(new Vehicle('sedan', 80,  9, -1.8 * speedMultiplier));
+          this.vehicles.push(new Vehicle('sedan', 280, 9, -1.8 * speedMultiplier));
+          this.vehicles.push(new Vehicle('sedan', 460, 9, -1.8 * speedMultiplier));
+
+          // Row 8: Tractors / Dune Buggies (slow, moving right)
+          this.vehicles.push(new Vehicle('tractor', 30,  8, 1.5 * speedMultiplier));
+          this.vehicles.push(new Vehicle('tractor', 250, 8, 1.5 * speedMultiplier));
+          this.vehicles.push(new Vehicle('tractor', 450, 8, 1.5 * speedMultiplier));
+
+          // Row 7: Fast Race Cars (very fast, moving left)
+          this.vehicles.push(new Vehicle('racecar', 60,  7, -3.2 * speedMultiplier));
+          this.vehicles.push(new Vehicle('racecar', 340, 7, -3.2 * speedMultiplier));
+
+          // ---------------- RIVER LANES (Rows 1 to 5) ----------------
+          // Row 5: 3-Turtles (moving left, swimming)
+          this.riverEntities.push(new TurtleGroup(60,  5, 3, -1.6 * speedMultiplier, false));
+          this.riverEntities.push(new TurtleGroup(240, 5, 3, -1.6 * speedMultiplier, true));
+          this.riverEntities.push(new TurtleGroup(420, 5, 3, -1.6 * speedMultiplier, false));
+
+          // Row 4: Small Logs (moving right)
+          this.riverEntities.push(new Log(20,  4, 'small', 1.4 * speedMultiplier));
+          this.riverEntities.push(new Log(200, 4, 'small', 1.4 * speedMultiplier));
+          this.riverEntities.push(new Log(380, 4, 'small', 1.4 * speedMultiplier));
+
+          // Row 3: Long Logs (moving right, fast)
+          this.riverEntities.push(new Log(40,  3, 'large', 2.3 * speedMultiplier));
+          this.riverEntities.push(new Log(330, 3, 'large', 2.3 * speedMultiplier));
+
+          // Row 2: 2-Turtles (moving left, diving turtles)
+          this.riverEntities.push(new TurtleGroup(40,  2, 2, -1.9 * speedMultiplier, true));
+          this.riverEntities.push(new TurtleGroup(180, 2, 2, -1.9 * speedMultiplier, false));
+          this.riverEntities.push(new TurtleGroup(340, 2, 2, -1.9 * speedMultiplier, true));
+          this.riverEntities.push(new TurtleGroup(480, 2, 2, -1.9 * speedMultiplier, false));
+
+          // Row 1: Medium Logs (moving right)
+          this.riverEntities.push(new Log(30,  1, 'medium', 1.6 * speedMultiplier));
+          this.riverEntities.push(new Log(220, 1, 'medium', 1.6 * speedMultiplier));
+          this.riverEntities.push(new Log(410, 1, 'medium', 1.6 * speedMultiplier));
+        }
+
+        startGame() {
+          sfx.init();
+          this.score = 0;
+          this.lives = MAX_LIVES;
+          this.level = 1;
+          this.timer = TURN_DURATION;
+          this.goalBays = JSON.parse(JSON.stringify(GOAL_BAYS));
+          this.initLevelEntities();
+          this.frog.reset();
+          this.state = 'PLAYING';
+          this.hideAllOverlays();
+          this.updateScoreUI();
+        }
+
+        restartGame() {
+          this.startGame();
+        }
+
+        pauseGame() {
+          if (this.state === 'PLAYING') {
+            this.state = 'PAUSED';
+            this.pauseOverlay.classList.remove('hidden');
+          } else if (this.state === 'PAUSED') {
+            this.resumeGame();
+          }
+        }
+
+        resumeGame() {
+          if (this.state === 'PAUSED') {
+            this.state = 'PLAYING';
+            this.pauseOverlay.classList.add('hidden');
+          }
+        }
+
+        hideAllOverlays() {
+          this.startOverlay.classList.add('hidden');
+          this.pauseOverlay.classList.add('hidden');
+          this.gameOverOverlay.classList.add('hidden');
+          this.winOverlay.classList.add('hidden');
+        }
+
+        nextLevel() {
+          this.level++;
+          this.timer = TURN_DURATION;
+          this.goalBays = JSON.parse(JSON.stringify(GOAL_BAYS));
+          this.initLevelEntities();
+          this.frog.reset();
+          this.state = 'PLAYING';
+          this.hideAllOverlays();
+          this.updateScoreUI();
+        }
+
+        killFrog(type) {
+          if (!this.frog.isAlive) return;
+
+          this.frog.isAlive = false;
+          this.frog.deathType = type;
+          this.frog.deathTimer = 0.9; // 900ms death pause
+
+          if (type === 'splat') {
+            sfx.squash();
+          } else {
+            sfx.splash();
+          }
+
+          setTimeout(() => {
+            this.lives--;
+            if (this.lives <= 0) {
+              this.triggerGameOver();
+            } else {
+              this.frog.reset();
+              this.timer = TURN_DURATION;
+            }
+          }, 900);
+        }
+
+        triggerGameOver() {
+          this.state = 'GAMEOVER';
+          sfx.gameOver();
+
+          if (this.score > this.highScore) {
+            this.highScore = this.score;
+            localStorage.setItem('classic_frogger_highscore', String(this.highScore));
+          }
+
+          document.getElementById('finalScoreVal').textContent = this.score;
+          document.getElementById('finalHighVal').textContent = this.highScore;
+          document.getElementById('finalLevelVal').textContent = this.level;
+          this.updateScoreUI();
+          this.gameOverOverlay.classList.remove('hidden');
+        }
+
+        triggerLevelWin() {
+          this.state = 'LEVELWIN';
+          this.score += PTS_LEVEL_CLEAR;
+          sfx.levelWin();
+
+          if (this.score > this.highScore) {
+            this.highScore = this.score;
+            localStorage.setItem('classic_frogger_highscore', String(this.highScore));
+          }
+
+          this.updateScoreUI();
+          document.getElementById('nextLevelVal').textContent = this.level + 1;
+          this.winOverlay.classList.remove('hidden');
+        }
+
+        initInput() {
+          // Keyboard controls
+          window.addEventListener('keydown', (e) => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+              e.preventDefault();
+            }
+
+            sfx.init();
+
+            if (this.state === 'START' && (e.code === 'Enter' || e.code === 'Space')) {
+              this.startGame();
+              return;
+            }
+
+            if (this.state === 'GAMEOVER' && (e.code === 'Enter' || e.code === 'Space')) {
+              this.restartGame();
+              return;
+            }
+
+            if (this.state === 'LEVELWIN' && (e.code === 'Enter' || e.code === 'Space')) {
+              this.nextLevel();
+              return;
+            }
+
+            if (e.code === 'KeyP' || e.code === 'Escape') {
+              this.pauseGame();
+              return;
+            }
+
+            if (e.code === 'KeyM') {
+              this.toggleSound();
+              return;
+            }
+
+            if (this.state !== 'PLAYING') return;
+
+            // Frog movement
+            switch (e.code) {
+              case 'ArrowUp':
+              case 'KeyW':
+                this.handleFrogMove(0, -1, DIR.UP);
+                break;
+              case 'ArrowDown':
+              case 'KeyS':
+                this.handleFrogMove(0, 1, DIR.DOWN);
+                break;
+              case 'ArrowLeft':
+              case 'KeyA':
+                this.handleFrogMove(-1, 0, DIR.LEFT);
+                break;
+              case 'ArrowRight':
+              case 'KeyD':
+                this.handleFrogMove(1, 0, DIR.RIGHT);
+                break;
+            }
+          });
+
+          // Overlay button clicks
+          this.startBtn.addEventListener('click', () => this.startGame());
+          this.resumeBtn.addEventListener('click', () => this.resumeGame());
+          this.restartBtn.addEventListener('click', () => this.restartGame());
+          this.nextLevelBtn.addEventListener('click', () => this.nextLevel());
+
+          // Header action buttons
+          this.soundBtn.addEventListener('click', () => this.toggleSound());
+          this.crtBtn.addEventListener('click', () => this.toggleCrt());
+
+          // Touch controls
+          this.btnUp.addEventListener('click', () => this.handleFrogMove(0, -1, DIR.UP));
+          this.btnDown.addEventListener('click', () => this.handleFrogMove(0, 1, DIR.DOWN));
+          this.btnLeft.addEventListener('click', () => this.handleFrogMove(-1, 0, DIR.LEFT));
+          this.btnRight.addEventListener('click', () => this.handleFrogMove(1, 0, DIR.RIGHT));
+          this.touchPauseBtn.addEventListener('click', () => this.pauseGame());
+          this.touchRestartBtn.addEventListener('click', () => this.restartGame());
+        }
+
+        toggleSound() {
+          sfx.init();
+          sfx.enabled = !sfx.enabled;
+          this.soundBtn.classList.toggle('active', sfx.enabled);
+          document.getElementById('soundIcon').textContent = sfx.enabled ? '🔊' : '🔇';
+        }
+
+        toggleCrt() {
+          const isEnabled = !this.crtLayer.classList.contains('disabled');
+          this.crtLayer.classList.toggle('disabled', isEnabled);
+          this.crtBtn.classList.toggle('active', !isEnabled);
+        }
+
+        handleFrogMove(dx, dy, dir) {
+          if (this.state !== 'PLAYING' || !this.frog.isAlive) return;
+
+          const oldGy = this.frog.gridY;
+          this.frog.move(dx, dy, dir);
+
+          // Award forward progress points
+          if (this.frog.gridY < this.frog.highestRowThisLife) {
+            this.frog.highestRowThisLife = this.frog.gridY;
+            this.score += PTS_HOP;
+            this.updateScoreUI();
+          }
+        }
+
+        // ----------------------------------------------------------------------
+        // UPDATE PHYSICS & GAME LOGIC
+        // ----------------------------------------------------------------------
+        update(dt) {
+          if (this.state !== 'PLAYING') return;
+
+          // Timer Countdown
+          this.timer -= dt;
+          if (this.timer <= 0) {
+            this.timer = 0;
+            this.killFrog('splat'); // Time ran out
+            return;
+          }
+
+          // Low time warning beep
+          if (this.timer <= 7 && Math.floor(this.timer) !== Math.floor(this.timer + dt)) {
+            sfx.timeWarning();
+          }
+
+          // Random Fly in empty goal bay
+          this.flyTimer += dt;
+          if (this.flyTimer > 8.0) {
+            this.flyTimer = 0;
+            const emptyBays = this.goalBays.filter(b => !b.filled);
+            if (emptyBays.length > 0 && Math.random() < 0.6) {
+              const chosen = emptyBays[Math.floor(Math.random() * emptyBays.length)];
+              chosen.fly = true;
+              // Remove fly after 4.5 seconds
+              setTimeout(() => { chosen.fly = false; }, 4500);
+            }
+          }
+
+          // Update vehicles
+          for (let v of this.vehicles) {
+            v.update(dt);
+          }
+
+          // Update river entities
+          for (let r of this.riverEntities) {
+            r.update(dt);
+          }
+
+          // Update Frog
+          this.frog.update(dt);
+
+          if (!this.frog.isAlive) return;
+
+          const frogY = this.frog.gridY;
+          const frogBox = {
+            left: this.frog.pixelX + 4,
+            right: this.frog.pixelX + this.frog.width - 4,
+            top: this.frog.pixelY + 4,
+            bottom: this.frog.pixelY + this.frog.height - 4
+          };
+
+          // 1. Check Goal Zone (Row 0)
+          if (frogY === ROW_GOAL) {
+            this.checkGoalCollision();
+            return;
+          }
+
+          // 2. Check River Rows (Rows 1 to 5)
+          if (frogY >= 1 && frogY <= 5) {
+            let onSafeRaft = false;
+            let raftSpeed = 0;
+
+            for (let r of this.riverEntities) {
+              if (r.row === frogY) {
+                // Check if on log
+                if (r instanceof Log) {
+                  if (frogBox.right > r.x && frogBox.left < r.x + r.width) {
+                    onSafeRaft = true;
+                    raftSpeed = r.speed;
+                    break;
+                  }
+                } 
+                // Check if on turtle group
+                else if (r instanceof TurtleGroup) {
+                  if (frogBox.right > r.x && frogBox.left < r.x + r.width) {
+                    if (r.isSafe()) {
+                      onSafeRaft = true;
+                      raftSpeed = r.speed;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+
+            if (onSafeRaft) {
+              // Carry frog along with the raft
+              const drift = raftSpeed * dt * 60;
+              this.frog.pixelX += drift;
+              this.frog.targetX += drift;
+              this.frog.gridX = Math.round((this.frog.pixelX) / COL_WIDTH);
+
+              // Off-screen drift death
+              if (this.frog.pixelX < -10 || this.frog.pixelX > CANVAS_WIDTH - 10) {
+                this.killFrog('drown');
+              }
+            } else {
+              // Not on any raft in the river -> Drowned!
+              this.killFrog('drown');
+            }
+            return;
+          }
+
+          // 3. Check Road Rows (Rows 7 to 11)
+          if (frogY >= 7 && frogY <= 11) {
+            for (let v of this.vehicles) {
+              if (v.row === frogY) {
+                const vehicleBox = {
+                  left: v.x + 3,
+                  right: v.x + v.width - 3,
+                  top: v.y + 4,
+                  bottom: v.y + v.height - 4
+                };
+
+                // AABB Collision check
+                if (frogBox.right > vehicleBox.left &&
+                    frogBox.left < vehicleBox.right &&
+                    frogBox.bottom > vehicleBox.top &&
+                    frogBox.top < vehicleBox.bottom) {
+                  this.killFrog('splat');
+                  return;
+                }
+              }
+            }
+          }
+        }
+
+        checkGoalCollision() {
+          const frogCenterX = this.frog.pixelX + this.frog.width / 2;
+          let landedBay = null;
+
+          for (let bay of this.goalBays) {
+            const bayLeft = bay.x - bay.width / 2;
+            const bayRight = bay.x + bay.width / 2;
+
+            if (frogCenterX >= bayLeft && frogCenterX <= bayRight) {
+              landedBay = bay;
+              break;
+            }
+          }
+
+          if (landedBay && !landedBay.filled) {
+            // Safe landing in open bay!
+            landedBay.filled = true;
+            let bayPoints = PTS_GOAL;
+
+            // Extra points for remaining time
+            const timeBonus = Math.floor(this.timer) * 10;
+            bayPoints += timeBonus;
+
+            // Extra points if caught bonus fly
+            if (landedBay.fly) {
+              bayPoints += PTS_FLY;
+              landedBay.fly = false;
+            }
+
+            this.score += bayPoints;
+            sfx.goal();
+            this.updateScoreUI();
+
+            // Check if all 5 bays filled
+            const allFilled = this.goalBays.every(b => b.filled);
+            if (allFilled) {
+              this.triggerLevelWin();
+            } else {
+              // Reset frog to start for next attempt
+              this.frog.reset();
+              this.timer = TURN_DURATION;
+            }
+          } else {
+            // Hit the grass bushes between bays or an already-filled bay!
+            this.killFrog('splat');
+          }
+        }
+
+        // ----------------------------------------------------------------------
+        // RENDERING PIPELINE
+        // ----------------------------------------------------------------------
+        draw() {
+          const ctx = this.ctx;
+          ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+          // 1. Draw Background Lanes
+          this.drawBackground(ctx);
+
+          // 2. Draw Floating River Rafts (Logs & Turtles)
+          for (let r of this.riverEntities) {
+            r.draw(ctx);
+          }
+
+          // 3. Draw Road Vehicles
+          for (let v of this.vehicles) {
+            v.draw(ctx);
+          }
+
+          // 4. Draw Goal Bays, Bush Dividers, and Landed Frogs
+          this.drawGoalBays(ctx);
+
+          // 5. Draw Player Frog
+          this.frog.draw(ctx);
+
+          // 6. Draw Bottom HUD (Timer Bar & Remaining Lives)
+          this.drawHUD(ctx);
+        }
+
+        drawBackground(ctx) {
+          // River Zone (Rows 1 to 5) - Deep retro blue with animated ripples
+          const riverTop = TOP_OFFSET + 1 * ROW_HEIGHT;
+          const riverHeight = 5 * ROW_HEIGHT;
+          ctx.fillStyle = '#0a2342';
+          ctx.fillRect(0, riverTop, CANVAS_WIDTH, riverHeight);
+
+          // Water ripples
+          ctx.strokeStyle = '#0f3868';
+          ctx.lineWidth = 1;
+          for (let i = 0; i < 5; i++) {
+            const ry = riverTop + i * ROW_HEIGHT + 18;
+            ctx.beginPath();
+            ctx.moveTo(0, ry);
+            ctx.lineTo(CANVAS_WIDTH, ry);
+            ctx.stroke();
+          }
+
+          // Median Safe Sidewalk (Row 6) - Classic purple/dark magenta
+          const medianTop = TOP_OFFSET + ROW_MEDIAN * ROW_HEIGHT;
+          ctx.fillStyle = '#491059';
+          ctx.fillRect(0, medianTop, CANVAS_WIDTH, ROW_HEIGHT);
+
+          // Median curb detail
+          ctx.fillStyle = '#2f083b';
+          ctx.fillRect(0, medianTop, CANVAS_WIDTH, 4);
+          ctx.fillRect(0, medianTop + ROW_HEIGHT - 4, CANVAS_WIDTH, 4);
+
+          // Road Zone (Rows 7 to 11) - Dark asphalt
+          const roadTop = TOP_OFFSET + 7 * ROW_HEIGHT;
+          const roadHeight = 5 * ROW_HEIGHT;
+          ctx.fillStyle = '#0f1118';
+          ctx.fillRect(0, roadTop, CANVAS_WIDTH, roadHeight);
+
+          // Road white/yellow dashed divider stripes
+          ctx.strokeStyle = '#334155';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([12, 16]);
+          for (let i = 1; i < 5; i++) {
+            const laneY = roadTop + i * ROW_HEIGHT;
+            ctx.beginPath();
+            ctx.moveTo(0, laneY);
+            ctx.lineTo(CANVAS_WIDTH, laneY);
+            ctx.stroke();
+          }
+          ctx.setLineDash([]); // Reset dash
+
+          // Bottom Starting Sidewalk (Row 12) - Classic purple/dark magenta
+          const startTop = TOP_OFFSET + ROW_START * ROW_HEIGHT;
+          ctx.fillStyle = '#491059';
+          ctx.fillRect(0, startTop, CANVAS_WIDTH, ROW_HEIGHT);
+
+          // Bottom curb detail
+          ctx.fillStyle = '#2f083b';
+          ctx.fillRect(0, startTop, CANVAS_WIDTH, 4);
+        }
+
+        drawGoalBays(ctx) {
+          const goalTop = TOP_OFFSET;
+          const goalHeight = ROW_HEIGHT;
+
+          // Hedge background: Dense arcade green bush `#005a18`
+          ctx.fillStyle = '#064e1c';
+          ctx.fillRect(0, goalTop, CANVAS_WIDTH, goalHeight);
+
+          // Bush pattern texture
+          ctx.fillStyle = '#086e28';
+          for (let bx = 0; bx < CANVAS_WIDTH; bx += 18) {
+            ctx.beginPath();
+            ctx.arc(bx + 9, goalTop + 6, 8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Draw the 5 bays
+          for (let bay of this.goalBays) {
+            const bayLeft = bay.x - bay.width / 2;
+
+            // Recessed bay water cutout
+            ctx.fillStyle = '#0a2342';
+            ctx.beginPath();
+            ctx.roundRect(bayLeft, goalTop + 4, bay.width, goalHeight - 4, [6, 6, 0, 0]);
+            ctx.fill();
+
+            // Bay arch border
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Water ripple in empty bay
+            if (!bay.filled) {
+              ctx.strokeStyle = '#1e3a8a';
+              ctx.beginPath();
+              ctx.arc(bay.x, goalTop + 22, 10, 0, Math.PI);
+              ctx.stroke();
+            }
+
+            // Draw bonus fly if active
+            if (bay.fly && !bay.filled) {
+              ctx.fillStyle = '#facc15';
+              ctx.beginPath();
+              ctx.arc(bay.x, goalTop + 20, 5, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Fly wings
+              ctx.fillStyle = '#ffffff';
+              ctx.beginPath();
+              ctx.ellipse(bay.x - 3, goalTop + 14, 4, 2, -0.5, 0, Math.PI * 2);
+              ctx.ellipse(bay.x + 3, goalTop + 14, 4, 2, 0.5, 0, Math.PI * 2);
+              ctx.fill();
+            }
+
+            // Draw happy landed frog if filled
+            if (bay.filled) {
+              ctx.save();
+              ctx.translate(bay.x, goalTop + 20);
+
+              // Little gold / bright green seated frog
+              ctx.fillStyle = '#ffe600';
+              ctx.beginPath();
+              ctx.arc(0, 0, 9, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Eyes
+              ctx.fillStyle = '#ffffff';
+              ctx.beginPath();
+              ctx.arc(-4, -6, 3, 0, Math.PI * 2);
+              ctx.arc(4, -6, 3, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.fillStyle = '#000000';
+              ctx.beginPath();
+              ctx.arc(-4, -6, 1.5, 0, Math.PI * 2);
+              ctx.arc(4, -6, 1.5, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Smile
+              ctx.strokeStyle = '#000000';
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.arc(0, 2, 4, 0, Math.PI);
+              ctx.stroke();
+
+              ctx.restore();
+            }
+          }
+        }
+
+        drawHUD(ctx) {
+          const hudY = CANVAS_HEIGHT - 38;
+
+          // Background strip for HUD
+          ctx.fillStyle = '#05070a';
+          ctx.fillRect(0, hudY, CANVAS_WIDTH, 38);
+
+          // 1. Lives remaining (Drawn as cute little green frogs on the left)
+          for (let i = 0; i < MAX_LIVES; i++) {
+            const lx = 20 + i * 24;
+            const ly = hudY + 18;
+
+            if (i < this.lives) {
+              // Active Life Frog icon
+              ctx.fillStyle = '#00ff66';
+              ctx.beginPath();
+              ctx.arc(lx, ly, 6, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Feet
+              ctx.fillRect(lx - 8, ly - 6, 3, 3);
+              ctx.fillRect(lx + 5, ly - 6, 3, 3);
+              ctx.fillRect(lx - 8, ly + 3, 3, 3);
+              ctx.fillRect(lx + 5, ly + 3, 3, 3);
+            } else {
+              // Lost life outline
+              ctx.strokeStyle = '#334155';
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.arc(lx, ly, 6, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+          }
+
+          // 2. Timer Label and Depleting Bar on the right
+          const barWidth = 240;
+          const barHeight = 14;
+          const barX = CANVAS_WIDTH - barWidth - 20;
+          const barY = hudY + 11;
+
+          // "TIME" label
+          ctx.fillStyle = '#ffe600';
+          ctx.font = 'bold 12px monospace';
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('TIME', barX - 10, barY + barHeight / 2);
+
+          // Timer Bar Outer Box
+          ctx.strokeStyle = '#475569';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(barX, barY, barWidth, barHeight);
+
+          // Timer Bar Fill
+          const pct = Math.max(0, this.timer / TURN_DURATION);
+          const currentWidth = barWidth * pct;
+
+          // Color changes as time runs out (Green -> Yellow -> Flashing Red)
+          if (pct > 0.45) {
+            ctx.fillStyle = '#00ff66';
+          } else if (pct > 0.22) {
+            ctx.fillStyle = '#ffe600';
+          } else {
+            // Flash red on critical time
+            const flash = Math.floor(Date.now() / 150) % 2 === 0;
+            ctx.fillStyle = flash ? '#ff2233' : '#7f1d1d';
+          }
+
+          ctx.fillRect(barX + 2, barY + 2, Math.max(0, currentWidth - 4), barHeight - 4);
+        }
+
+        // ----------------------------------------------------------------------
+        // MASTER GAME LOOP
+        // ----------------------------------------------------------------------
+        gameLoop(timestamp) {
+          if (!this.lastTime) this.lastTime = timestamp;
+          const dt = Math.min((timestamp - this.lastTime) / 1000, 0.1); // Cap delta to prevent teleports
+          this.lastTime = timestamp;
+
+          this.update(dt);
+          this.draw();
+
+          requestAnimationFrame(this.gameLoop.bind(this));
+        }
+      }
+
+      // Initialize game on DOM ready
+      window.addEventListener('DOMContentLoaded', () => {
+        new FroggerGame();
+      });
+    })();
+  </script>
+</body>
+</html>

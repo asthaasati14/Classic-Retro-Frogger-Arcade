@@ -1,0 +1,6 @@
+{
+  "name": "Classic Retro Frogger Arcade",
+  "description": "A complete, self-contained retro arcade game inspired by classic Frogger with authentic 80s arcade visuals, grid-based hopping, road traffic, river log floating, goals, and sound effects.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
